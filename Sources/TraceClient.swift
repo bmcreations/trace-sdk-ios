@@ -1,0 +1,180 @@
+import UIKit
+import TraceKMP
+
+/// Swift-idiomatic wrapper around the KMP TraceIOS SDK.
+/// All logic lives in TraceIOS.kt — this file is a thin bridge.
+public class TraceClient {
+    public static let shared = TraceClient()
+    private init() {}
+
+    // MARK: - Initialize
+
+    public static func initialize(config: TraceClientConfig) {
+        let kmpConfig = config.toKmp()
+        TraceIOS.shared.initialize(config: kmpConfig)
+    }
+
+    // MARK: - Listeners
+
+    public static func setDeepLinkListener(_ listener: @escaping (TraceDeepLink) -> Void) {
+        TraceIOS.shared.setDeepLinkListener { kmpDeepLink in
+            listener(TraceDeepLink(
+                path:       kmpDeepLink.path,
+                params:     kmpDeepLink.params as? [String: String] ?? [:],
+                isDeferred: kmpDeepLink.isDeferred
+            ))
+        }
+    }
+
+    public static func setAttributionListener(_ listener: @escaping (TraceAttributionResult) -> Void) {
+        TraceIOS.shared.setAttributionListener { result in
+            listener(TraceAttributionResult(from: result))
+        }
+    }
+
+    // MARK: - Universal / Custom scheme links
+
+    public static func handleUniversalLink(_ url: URL) -> Bool {
+        guard let nsUrl = url as NSURL? else { return false }
+      return TraceIOS.shared.handleUniversalLink(url: nsUrl as URL)
+    }
+
+    public static func handleCustomScheme(_ url: URL) -> Bool {
+        guard let nsUrl = url as NSURL? else { return false }
+      return TraceIOS.shared.handleCustomScheme(url: nsUrl as URL)
+    }
+
+    // MARK: - Events
+
+    public static func trackEvent(
+        name: String,
+        properties: [String: String] = [:],
+    ) {
+        TraceIOS.shared.trackEvent(
+            name:       name,
+            properties: properties,
+        )
+    }
+
+    // MARK: - SKAdNetwork
+
+    public static func updateConversionValue(_ value: Int) {
+        TraceIOS.shared.updateConversionValue(value: Int32(value))
+    }
+
+    // MARK: - Testing
+
+    public static func resetForTesting() {
+        TraceIOS.shared.resetForTesting()
+    }
+}
+
+// MARK: - Region
+
+/// Data region for API traffic routing and data residency.
+public enum TraceRegion: String {
+    /// Routes traffic to api.traceclick.io (US data residency, default)
+    case us
+    /// Routes traffic to api-eu.traceclick.io (EU data residency)
+    case eu
+
+    fileprivate func toKmp() -> Region {
+        switch self {
+        case .us: return .us
+        case .eu: return .eu
+        }
+    }
+}
+
+// MARK: - Config
+
+public struct TraceClientConfig {
+    public let apiKey: String
+    public let hashSalt: String
+    public let region: TraceRegion
+    public let debug: Bool
+    public let testMode: Bool
+    public let simulatedDeepLink: TraceDeepLink?
+
+    public init(
+        apiKey: String,
+        hashSalt: String,
+        region: TraceRegion = .us,
+        debug: Bool = false,
+        testMode: Bool = false,
+        simulatedDeepLink: TraceDeepLink? = nil
+    ) {
+        self.apiKey = apiKey
+        self.hashSalt = hashSalt
+        self.region = region
+        self.debug = debug
+        self.testMode = testMode
+        self.simulatedDeepLink = simulatedDeepLink
+    }
+
+    public static func test(
+        apiKey: String = "test_key",
+        simulatedDeepLink: TraceDeepLink? = TraceDeepLink(
+            path: "/test/welcome",
+            params: ["source": "test_mode"],
+            isDeferred: true
+        )
+    ) -> TraceClientConfig {
+        TraceClientConfig(
+            apiKey:            apiKey,
+            hashSalt:          "test-salt-do-not-use-in-production",
+            region:            .us,
+            debug:             true,
+            testMode:          true,
+            simulatedDeepLink: simulatedDeepLink
+        )
+    }
+
+    fileprivate func toKmp() -> TraceConfig {
+        let kmpTestMode: TestModeConfig? = testMode ? TestModeConfig(
+            simulatedDeepLink: simulatedDeepLink.map { DeepLink(path: $0.path, params: $0.params, isDeferred: $0.isDeferred) },
+            simulatedCampaignId: nil,
+            simulatedMethod: "TEST",
+            responseDelayMs: 300
+        ) : nil
+        return TraceConfig(
+            apiKey:   apiKey,
+            hashSalt: hashSalt,
+            region:   region.toKmp(),
+            debug:    debug,
+            testMode: kmpTestMode
+        )
+    }
+}
+
+// MARK: - Attribution result bridge
+
+public struct TraceAttributionResult {
+    public let attributed: Bool
+    public let method: String?
+    public let campaignId: String?
+    public let deepLink: TraceDeepLink?
+
+    public init(attributed: Bool, method: String?, campaignId: String?, deepLink: TraceDeepLink?) {
+        self.attributed = attributed
+        self.method = method
+        self.campaignId = campaignId
+        self.deepLink = deepLink
+    }
+
+    fileprivate init(from result: AttributionResult) {
+        if let attributed = result as? AttributionResult.Attributed {
+            self.attributed = true
+            self.method     = attributed.method
+            self.campaignId = attributed.campaignId
+            self.deepLink   = attributed.deepLink.map {
+                TraceDeepLink(path: $0.path, params: $0.params as? [String: String] ?? [:], isDeferred: $0.isDeferred)
+            }
+        } else {
+            self.attributed = false
+            self.method     = nil
+            self.campaignId = nil
+            self.deepLink   = nil
+        }
+    }
+}
