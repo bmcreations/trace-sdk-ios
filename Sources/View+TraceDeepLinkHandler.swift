@@ -34,24 +34,30 @@ private struct TraceDeepLinkHandlerModifier<Route: Hashable>: ViewModifier {
         .onChange(of: trace.deepLink) { deepLink in
             guard let deepLink else { return }
 
-            guard let route = mapper.map(deepLink) else {
+            guard let result = mapper.mapResult(deepLink) else {
                 trace.consumeDeepLink()
                 return
             }
 
-            if deepLink.isDeferred && !authGate() {
-                // Auth not ready — park until TracePostAuthEffect drains it
-                trace.parkDeferred(deepLink)
-                return
-            }
+            switch result {
+            case .action(let execute):
+                execute()
+                trace.consumeDeepLink()
+            case .navigate(let route):
+                if deepLink.isDeferred && !authGate() {
+                    // Auth not ready — park until post-auth handler drains it
+                    trace.parkDeferred(deepLink)
+                    return
+                }
 
-            if deepLink.isDeferred {
-                // Replace stack — user must not back-navigate to blank launch screen
-                self.path = [route]
-            } else {
-                if self.path.last != route { self.path.append(route) }
+                if deepLink.isDeferred {
+                    // Replace stack — user must not back-navigate to blank launch screen
+                    self.path = [route]
+                } else {
+                    if self.path.last != route { self.path.append(route) }
+                }
+                trace.consumeDeepLink()
             }
-            trace.consumeDeepLink()
         }
     }
 

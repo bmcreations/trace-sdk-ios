@@ -62,6 +62,24 @@ public class TraceClient {
         TraceIOS.shared.updateConversionValue(value: Int32(value))
     }
 
+    // MARK: - Privacy / Opt-out
+
+    /// Enable or disable all Trace data collection.
+    ///
+    /// When disabled, no fingerprint data is collected and no network
+    /// requests are made. The preference is persisted across app restarts.
+    ///
+    /// Use this to respect user privacy preferences — for example, after
+    /// the user denies App Tracking Transparency (ATT) or withdraws GDPR consent.
+    public static func setEnabled(_ enabled: Bool) {
+        Trace.shared.setEnabled(enabled: enabled)
+    }
+
+    /// Returns whether Trace data collection is currently enabled.
+    public static var isEnabled: Bool {
+        Trace.shared.isEnabled()
+    }
+
     // MARK: - Testing
 
     public static func resetForTesting() {
@@ -93,6 +111,7 @@ public struct TraceClientConfig {
     public let hashSalt: String
     public let region: TraceRegion
     public let debug: Bool
+    public let enabled: Bool
     public let testMode: Bool
     public let simulatedDeepLink: TraceDeepLink?
 
@@ -101,6 +120,7 @@ public struct TraceClientConfig {
         hashSalt: String,
         region: TraceRegion = .us,
         debug: Bool = false,
+        enabled: Bool = true,
         testMode: Bool = false,
         simulatedDeepLink: TraceDeepLink? = nil
     ) {
@@ -108,6 +128,7 @@ public struct TraceClientConfig {
         self.hashSalt = hashSalt
         self.region = region
         self.debug = debug
+        self.enabled = enabled
         self.testMode = testMode
         self.simulatedDeepLink = simulatedDeepLink
     }
@@ -142,7 +163,8 @@ public struct TraceClientConfig {
             hashSalt: hashSalt,
             region:   region.toKmp(),
             debug:    debug,
-            testMode: kmpTestMode
+            testMode: kmpTestMode,
+            enabled:  enabled
         )
     }
 }
