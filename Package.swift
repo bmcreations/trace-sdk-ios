@@ -2,7 +2,7 @@
 import PackageDescription
 
 let version = "0.4.0"
-let checksum = "48bd62ac98bd2e0eec658a0b3ea3b0d64b3a16afe2cf931018d254041a5ae412"
+let checksum = "18726aadbea7f3400e2e135624d2931e741fdcff65f3c90961831e1c65fd0e0d"
 
 let package = Package(
     name: "TraceSDK",
