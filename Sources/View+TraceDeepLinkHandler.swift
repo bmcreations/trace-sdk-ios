@@ -1,7 +1,7 @@
 import SwiftUI
 
 extension View {
-    public func traceDeepLinkHandler<Route: Hashable>(
+    public func onDeepLink<Route: Hashable>(
         path: Binding<[Route]>,
         mapper: TraceRouteMapper<Route>,
         authGate: @escaping () -> Bool = { true }
