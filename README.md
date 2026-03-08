@@ -10,11 +10,11 @@ Add the package to your Xcode project via Swift Package Manager:
 https://github.com/bmcreations/trace-sdk-ios
 ```
 
-Or add it to your `Package.swift`:
+Or add it to your `Package.swift` — see [Releases](https://github.com/bmcreations/trace-sdk-ios/releases) for the latest version:
 
 ```swift
 dependencies: [
-    .package(url: "https://github.com/bmcreations/trace-sdk-ios", from: "0.5.4")
+    .package(url: "https://github.com/bmcreations/trace-sdk-ios", from: "<version>")
 ]
 ```
 
