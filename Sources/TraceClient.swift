@@ -11,13 +11,13 @@ public class TraceClient {
 
     public static func initialize(config: TraceClientConfig) {
         let kmpConfig = config.toKmp()
-        TraceIOS.shared.initialize(config: kmpConfig)
+        Trace.shared.initialize(config: kmpConfig)
     }
 
     // MARK: - Listeners
 
     public static func setDeepLinkListener(_ listener: @escaping (TraceDeepLink) -> Void) {
-        TraceIOS.shared.setDeepLinkListener { kmpDeepLink in
+        Trace.shared.setDeepLinkListener { kmpDeepLink in
             listener(TraceDeepLink(
                 path:       kmpDeepLink.path,
                 params:     kmpDeepLink.params as? [String: String] ?? [:],
@@ -27,7 +27,7 @@ public class TraceClient {
     }
 
     public static func setAttributionListener(_ listener: @escaping (TraceAttributionResult) -> Void) {
-        TraceIOS.shared.setAttributionListener { result in
+        Trace.shared.setAttributionListener { result in
             listener(TraceAttributionResult(from: result))
         }
     }
@@ -36,12 +36,12 @@ public class TraceClient {
 
     public static func handleUniversalLink(_ url: URL) -> Bool {
         guard let nsUrl = url as NSURL? else { return false }
-      return TraceIOS.shared.handleUniversalLink(url: nsUrl as URL)
+        return TraceIOS.shared.handleUniversalLink(url: nsUrl as URL)
     }
 
     public static func handleCustomScheme(_ url: URL) -> Bool {
         guard let nsUrl = url as NSURL? else { return false }
-      return TraceIOS.shared.handleCustomScheme(url: nsUrl as URL)
+        return TraceIOS.shared.handleCustomScheme(url: nsUrl as URL)
     }
 
     // MARK: - Events
@@ -50,9 +50,9 @@ public class TraceClient {
         name: String,
         properties: [String: String] = [:],
     ) {
-        TraceIOS.shared.trackEvent(
+        Trace.shared.trackEvent(
             name:       name,
-            properties: properties,
+            properties: properties
         )
     }
 
@@ -77,13 +77,13 @@ public class TraceClient {
 
     /// Returns whether Trace data collection is currently enabled.
     public static var isEnabled: Bool {
-        Trace.shared.isEnabled()
+        Trace.shared.isEnabled
     }
 
     // MARK: - Testing
 
     public static func resetForTesting() {
-        TraceIOS.shared.resetForTesting()
+        Trace.shared.resetForTesting()
     }
 }
 
