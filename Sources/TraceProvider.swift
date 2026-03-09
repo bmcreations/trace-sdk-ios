@@ -31,5 +31,19 @@ public struct TraceProvider<Content: View>: View {
     public var body: some View {
         content()
             .environmentObject(trace)
+            .onAppear {
+                TraceClient.setDeepLinkListener { link in
+                    trace.onDeepLink(link)
+                }
+                TraceClient.setAttributionListener { result in
+                    trace.onAttribution(TraceAttribution(
+                        attributed: result.attributed,
+                        method: result.method ?? "UNKNOWN",
+                        campaignId: result.campaignId,
+                        deepLink: result.deepLink
+                    ))
+                }
+                trace.drainCachedDeepLink()
+            }
     }
 }
