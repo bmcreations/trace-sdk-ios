@@ -11,7 +11,7 @@ public class TraceClient {
 
     public static func initialize(config: TraceClientConfig) {
         let kmpConfig = config.toKmp()
-        Trace.shared.initialize(config: kmpConfig)
+        Trace.shared.initialize(context: nil, config: kmpConfig)
     }
 
     // MARK: - Listeners
