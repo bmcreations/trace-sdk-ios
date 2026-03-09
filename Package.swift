@@ -1,8 +1,8 @@
 // swift-tools-version: 5.9
 import PackageDescription
 
-let version = "0.7.4"
-let checksum = "d10d0a12f572b44c9219c81dca39d1aa09a66d1ce0f36ec80f7c92da649a383d"
+let version = "0.7.5"
+let checksum = "2648c4250c7e631848aede21c2e1f1385792ebdea724da09f029ff67bc584067"
 
 let package = Package(
     name: "TraceSDK",
