@@ -45,14 +45,11 @@ public class TraceObservable: ObservableObject {
 
     public func onDeepLink(_ link: TraceDeepLink) {
         DispatchQueue.main.async {
-            if link.isDeferred {
-                // Always park deferred links — AppRootView's onChange will drain them.
-                // If the onChange fires immediately (user already logged in) it will
-                // route directly. If not, TracePostAuthEffect drains after login.
-                self.pendingDeferredDeepLink = link
-            } else {
-                self.deepLink = link
-            }
+            // Always flow through deepLink so the .onDeepLink() modifier's
+            // .onChange(of: trace.deepLink) fires for ALL links — including
+            // deferred ones. The modifier decides whether to navigate
+            // immediately or park for post-auth drain.
+            self.deepLink = link
         }
     }
 

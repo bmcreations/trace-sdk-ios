@@ -22,6 +22,9 @@ private struct TraceDeepLinkHandlerModifier<Route: Hashable>: ViewModifier {
     @EnvironmentObject var trace: TraceObservable
 
     func body(content: Content) -> some View {
+        // Evaluate authGate() each render so SwiftUI can detect transitions
+        let isAuth = authGate()
+
         content
         .onOpenURL { url in
             let deepLink = TraceDeepLink(
@@ -57,6 +60,20 @@ private struct TraceDeepLinkHandlerModifier<Route: Hashable>: ViewModifier {
                     if self.path.last != route { self.path.append(route) }
                 }
                 trace.consumeDeepLink()
+            }
+        }
+        // Post-auth drain: when authGate() transitions to true (parent
+        // re-renders because auth state changed), navigate to any
+        // parked deferred deep link.
+        .onChange(of: isAuth) { authenticated in
+            guard authenticated else { return }
+            guard let pending = trace.consumePendingDeferredDeepLink() else { return }
+            guard let result = mapper.mapResult(pending) else { return }
+            switch result {
+            case .navigate(let route):
+                self.path = [route]
+            case .action(let execute):
+                execute()
             }
         }
     }
