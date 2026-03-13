@@ -80,6 +80,18 @@ public class TraceClient {
         Trace.shared.isEnabled
     }
 
+    // MARK: - Reset
+
+    /// Resets the install on both the server and locally.
+    /// Use this for demo/testing flows to allow re-attribution.
+    public static func resetInstall(onComplete: ((Bool) -> Void)? = nil) {
+        Trace.shared.resetInstall { success in
+            DispatchQueue.main.async {
+                onComplete?(success.boolValue)
+            }
+        }
+    }
+
     // MARK: - Testing
 
     public static func resetForTesting() {
