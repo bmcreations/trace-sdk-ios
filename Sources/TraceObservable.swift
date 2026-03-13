@@ -73,6 +73,14 @@ public class TraceObservable: ObservableObject {
         deepLink = nil
     }
 
+    public func reset() {
+        DispatchQueue.main.async {
+            self.deepLink = nil
+            self.attribution = nil
+            self.pendingDeferredDeepLink = nil
+        }
+    }
+
     // Park-and-replay — mirrors Android TraceState
     public func parkDeferred(_ link: TraceDeepLink) {
         DispatchQueue.main.async {

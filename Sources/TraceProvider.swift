@@ -43,6 +43,9 @@ public struct TraceProvider<Content: View>: View {
                         deepLink: result.deepLink
                     ))
                 }
+                TraceClient.setResetListener {
+                    trace.reset()
+                }
                 trace.drainCachedDeepLink()
             }
     }

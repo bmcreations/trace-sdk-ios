@@ -32,6 +32,12 @@ public class TraceClient {
         }
     }
 
+    public static func setResetListener(_ listener: @escaping () -> Void) {
+        Trace.shared.setResetListener {
+            DispatchQueue.main.async { listener() }
+        }
+    }
+
     // MARK: - Universal / Custom scheme links
 
     public static func handleUniversalLink(_ url: URL) -> Bool {
